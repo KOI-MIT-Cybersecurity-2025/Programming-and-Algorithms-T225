@@ -3,46 +3,52 @@ package src;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Abstract Member Class (The "Model")
- * This is the blueprint for all member types in the gym.
- * It defines common attributes and behaviors.
- * The 'abstract' keyword means you cannot create a direct instance of Member.
+ * Member Class (Abstract "Model")
+ * This is the base class for all member types. It defines the common
+ * properties and behaviors that all members will share.
+ * It's abstract, meaning you cannot create a generic "Member"; you must
+ * create a specific type like RegularMember or PremiumMember.
  */
 public abstract class Member {
-    // Attributes are 'protected' so they are accessible by subclasses.
+
+    // --- ATTRIBUTES ---
     protected String memberId;
     protected String fullName;
     protected LocalDate joinDate;
+    // This list will hold the history of performance records for the member.
     protected List<Performance> performanceHistory;
 
-    /**
-     * Constructor for the Member class.
-     * @param memberId A unique identifier for the member.
-     * @param fullName The full name of the member.
-     * @param joinDate The date the member joined the gym.
-     */
+    // --- CONSTRUCTOR ---
     public Member(String memberId, String fullName, LocalDate joinDate) {
         this.memberId = memberId;
         this.fullName = fullName;
         this.joinDate = joinDate;
-        this.performanceHistory = new ArrayList<>(); // Initialize the performance list
+        // Initialize the performance history list.
+        this.performanceHistory = new ArrayList<>();
     }
 
-    // --- Abstract Method ---
-    /**
-     * Calculates the monthly fee for the member.
-     * This method is 'abstract' because the calculation is different for each
-     * type of member. Each subclass MUST provide its own implementation.
-     * This is a core part of Polymorphism.
-     * @return The calculated monthly fee as a double.
-     */
+    // --- ABSTRACT METHODS ---
+    // This method must be implemented by all concrete subclasses (RegularMember, PremiumMember).
     public abstract double calculateMonthlyFee();
 
-    // --- Getters and Setters ---
-    // Standard methods to access and modify the object's state.
+    // This method converts the member's data to a CSV-formatted string for saving.
+    public abstract String toCsvString();
 
+    // --- CONCRETE METHODS ---
+
+    /**
+     * Adds a new performance record to this member's history.
+     * This is the method that resolves the compilation error.
+     * @param record The Performance object to add.
+     */
+    public void addPerformanceRecord(Performance record) {
+        this.performanceHistory.add(record);
+    }
+
+    // --- GETTERS AND SETTERS ---
     public String getMemberId() {
         return memberId;
     }
@@ -59,16 +65,28 @@ public abstract class Member {
         return joinDate;
     }
 
-    public void addPerformance(Performance performance) {
-        this.performanceHistory.add(performance);
-    }
-
     public List<Performance> getPerformanceHistory() {
         return performanceHistory;
     }
 
+    /**
+     * Overrides the default toString method to provide a detailed, readable
+     * description of the member, including their performance history.
+     */
     @Override
     public String toString() {
-        return "Member ID: " + memberId + ", Name: " + fullName + ", Joined: " + joinDate;
+        // Use a StringBuilder for efficient string concatenation.
+        StringBuilder sb = new StringBuilder();
+        // Add performance history to the output string.
+        if (!performanceHistory.isEmpty()) {
+            sb.append("\n  Performance History:");
+            for (Performance p : performanceHistory) {
+                sb.append("\n    - ").append(p.toString());
+            }
+        } else {
+            sb.append("\n  Performance History: No records found.");
+        }
+        return sb.toString();
     }
 }
+

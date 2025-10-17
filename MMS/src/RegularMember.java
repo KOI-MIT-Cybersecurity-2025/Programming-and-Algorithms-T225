@@ -1,36 +1,61 @@
 package src;
 
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 /**
- * Represents a regular gym member.
- * This class 'extends' the Member class, inheriting its properties and methods.
- * This is a core example of Inheritance.
+ * RegularMember Class (Concrete "Model")
+ * This class represents a standard gym member and extends the base Member class.
  */
 public class RegularMember extends Member {
 
-    // A constant specific to this class.
+    // --- CONSTANTS ---
     private static final double BASE_FEE = 50.0;
 
-    /**
-     * Constructor for a RegularMember.
-     * It calls the parent Member's constructor using 'super()'.
-     */
+    // --- CONSTRUCTOR ---
     public RegularMember(String memberId, String fullName, LocalDate joinDate) {
+        // Call the constructor of the parent class (Member).
         super(memberId, fullName, joinDate);
     }
 
+    // --- OVERRIDDEN METHODS ---
+
     /**
-     * Provides a concrete implementation for the abstract method from the Member class.
-     * This is required for the code to compile.
+     * Provides the specific fee calculation for a regular member.
+     * @return The flat base fee.
      */
     @Override
     public double calculateMonthlyFee() {
         return BASE_FEE;
     }
 
+    /**
+     * Formats the RegularMember's data into a CSV string for file storage.
+     * This implementation is required by the abstract Member class and resolves the error.
+     */
+    @Override
+    public String toCsvString() {
+        String baseDetails = String.join(",", memberId, fullName, "Regular", joinDate.toString());
+        
+        // Append performance data, separated by "|"
+        String performanceDetails = performanceHistory.stream()
+            .map(p -> String.format("%d:%d:%b", p.getMonth(), p.getYear(), p.wasGoalAchieved()))
+            .collect(Collectors.joining("|"));
+
+        if (!performanceDetails.isEmpty()) {
+            return baseDetails + "|" + performanceDetails;
+        }
+        return baseDetails;
+    }
+
+    /**
+     * Overrides the default toString to provide a clear description.
+     */
     @Override
     public String toString() {
-        return "[Regular Member] " + super.toString() + String.format(", Monthly Fee: $%.2f", calculateMonthlyFee());
+        return String.format("[Regular Member] Member ID: %s, Name: %s, Joined: %s, Monthly Fee: $%.2f",
+                getMemberId(), getFullName(), getJoinDate(), calculateMonthlyFee())
+                + super.toString(); // Append performance history from parent class
     }
 }
+
