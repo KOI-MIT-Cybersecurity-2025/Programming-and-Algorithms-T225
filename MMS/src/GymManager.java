@@ -1,10 +1,10 @@
 package src;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -13,112 +13,130 @@ import java.util.stream.Collectors;
 
 /**
  * GymManager Class (The "Controller")
- * This class handles all the business logic for managing members.
- * It acts as an intermediary between the UI (View) and the data (Model).
+ * This class handles all the core application logic. It manages the list of
+ * members and is responsible for all operations like adding, deleting,
+ * finding, saving, and loading. The UI class will delegate all work to this class.
  */
 public class GymManager {
-    // The main data structure for holding all member objects.
-    // We use 'List<Member>' to allow for polymorphism.
-    // We instantiate it as 'ArrayList' as justified in our design phase.
-    private List<Member> members;
 
-    public GymManager() {
-        this.members = new ArrayList<>();
-    }
+    private List<Member> members = new ArrayList<>();
 
-    /**
-     * Adds a new member to the system.
-     * @param member The Member object to add (can be RegularMember or PremiumMember).
-     */
+    // --- Core CRUD Operations ---
+
     public void addMember(Member member) {
-        // You could add a check here to prevent duplicate member IDs.
         members.add(member);
     }
 
-    /**
-     * Finds a member by their unique ID.
-     * @param memberId The ID to search for.
-     * @return The Member object if found, otherwise null.
-     */
-    public Member findMemberById(String memberId) {
-        // Using Java Streams for a modern and concise search.
-        return members.stream()
-                      .filter(m -> m.getMemberId().equalsIgnoreCase(memberId))
-                      .findFirst()
-                      .orElse(null);
-    }
-
-    /**
-     * Deletes a member from the system using their ID.
-     * @param memberId The ID of the member to delete.
-     * @return true if a member was deleted, false otherwise.
-     */
     public boolean deleteMember(String memberId) {
         return members.removeIf(member -> member.getMemberId().equalsIgnoreCase(memberId));
     }
 
-    /**
-     * Returns the entire list of members.
-     * @return A List containing all members.
-     */
+    public Member findMemberById(String memberId) {
+        return members.stream()
+                .filter(member -> member.getMemberId().equalsIgnoreCase(memberId))
+                .findFirst()
+                .orElse(null);
+    }
+
     public List<Member> getAllMembers() {
         return members;
     }
 
+    // --- NEW: Advanced Search and Filter Methods ---
+
     /**
-     * Loads member data from a specified CSV file.
-     * This method demonstrates file input and exception handling.
-     * @param filename The path to the CSV file (e.g., "member_data.csv").
+     * Finds all members whose full name contains the given search term (case-insensitive).
+     * @param name The search term for the member's name.
+     * @return A List of matching Member objects. Returns an empty list if none found.
      */
+    public List<Member> findMembersByName(String name) {
+        return members.stream()
+                .filter(member -> member.getFullName().toLowerCase().contains(name.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Filters members by their type (Regular or Premium).
+     * @param type The member type to filter by ("Regular" or "Premium").
+     * @return A List of matching Member objects.
+     */
+    public List<Member> findMembersByType(String type) {
+        return members.stream()
+                .filter(member -> {
+                    if (type.equalsIgnoreCase("Regular")) {
+                        return member instanceof RegularMember;
+                    } else if (type.equalsIgnoreCase("Premium")) {
+                        return member instanceof PremiumMember;
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Finds all members who have a performance record matching the specified criteria.
+     * @param month The month of the performance record (1-12).
+     * @param year The year of the performance record.
+     * @param goalAchieved The status of the goal (true for achieved, false for not achieved).
+     * @return A List of matching Member objects.
+     */
+    public List<Member> findMembersByPerformance(int month, int year, boolean goalAchieved) {
+        return members.stream()
+                .filter(member -> member.getPerformanceHistory().stream()
+                        .anyMatch(perf -> perf.getMonth() == month && perf.getYear() == year && perf.wasGoalAchieved() == goalAchieved))
+                .collect(Collectors.toList());
+    }
+
+
+    // --- File Handling ---
+
     public void loadFromFile(String filename) {
-        members.clear(); // Clear current list before loading from file
-        // Using a "try-with-resources" block to automatically close the reader.
+        members.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length < 4) continue; // Skip malformed lines
+                String[] mainParts = line.split("\\|");
+                String[] memberDetails = mainParts[0].split(",");
 
-                String id = parts[0].trim();
-                String name = parts[1].trim();
-                String type = parts[2].trim();
-                LocalDate joinDate = LocalDate.parse(parts[3].trim());
+                String id = memberDetails[0].trim();
+                String name = memberDetails[1].trim();
+                String type = memberDetails[2].trim();
+                LocalDate joinDate = LocalDate.parse(memberDetails[3].trim());
 
+                Member member = null;
                 if (type.equalsIgnoreCase("Regular")) {
-                    members.add(new RegularMember(id, name, joinDate));
-                } else if (type.equalsIgnoreCase("Premium") && parts.length >= 5) {
-                    double trainerFee = Double.parseDouble(parts[4].trim());
-                    members.add(new PremiumMember(id, name, joinDate, trainerFee));
+                    member = new RegularMember(id, name, joinDate);
+                } else if (type.equalsIgnoreCase("Premium")) {
+                    double trainerFee = Double.parseDouble(memberDetails[4].trim());
+                    member = new PremiumMember(id, name, joinDate, trainerFee);
+                }
+
+                if (member != null) {
+                    if (mainParts.length > 1) {
+                        for (int i = 1; i < mainParts.length; i++) {
+                            String[] perfParts = mainParts[i].split(":");
+                            int month = Integer.parseInt(perfParts[0]);
+                            int year = Integer.parseInt(perfParts[1]);
+                            boolean goalAchieved = Boolean.parseBoolean(perfParts[2]);
+                            member.addPerformanceRecord(new Performance(month, year, goalAchieved));
+                        }
+                    }
+                    members.add(member);
                 }
             }
             System.out.println("Successfully loaded " + members.size() + " members from " + filename);
         } catch (IOException e) {
             System.err.println("Error: File not found or cannot be read. " + e.getMessage());
-        } catch (DateTimeParseException | NumberFormatException e) {
+        } catch (DateTimeParseException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.err.println("Error: Data in the file is corrupt or incorrectly formatted. " + e.getMessage());
         }
     }
 
-    /**
-     * Saves the current list of members to a specified CSV file.
-     * This method demonstrates file output.
-     * @param filename The path to the file where data will be saved.
-     */
     public void saveToFile(String filename) {
-        // Using "try-with-resources" to automatically close the writer.
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             for (Member member : members) {
-                // This part demonstrates polymorphism in file handling.
-                // We check the actual class of the member object to save its specific data.
-                if (member instanceof RegularMember) {
-                    writer.println(String.format("%s,%s,Regular,%s",
-                        member.getMemberId(), member.getFullName(), member.getJoinDate()));
-                } else if (member instanceof PremiumMember) {
-                    // Cast the member to PremiumMember to access the getPersonalTrainerFee method.
-                    PremiumMember premium = (PremiumMember) member;
-                    writer.println(String.format("%s,%s,Premium,%s,%.2f",
-                        member.getMemberId(), member.getFullName(), member.getJoinDate(), premium.getPersonalTrainerFee()));
-                }
+                writer.write(member.toCsvString());
+                writer.newLine();
             }
             System.out.println("Successfully saved " + members.size() + " members to " + filename);
         } catch (IOException e) {
