@@ -6,51 +6,34 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Member Class (Abstract "Model")
- * This is the base class for all member types. It defines the common
- * properties and behaviors that all members will share.
- * It's abstract, meaning you cannot create a generic "Member"; you must
- * create a specific type like RegularMember or PremiumMember.
+ * Member Abstract Class (The "Model" Foundation)
+ * UPDATED: Now includes MembershipStatus and methods to manage performance history.
+ * This is the parent class for all member types.
  */
 public abstract class Member {
 
-    // --- ATTRIBUTES ---
     protected String memberId;
     protected String fullName;
     protected LocalDate joinDate;
-    // This list will hold the history of performance records for the member.
+    protected MembershipStatus status; // The new status field
     protected List<Performance> performanceHistory;
 
-    // --- CONSTRUCTOR ---
     public Member(String memberId, String fullName, LocalDate joinDate) {
         this.memberId = memberId;
         this.fullName = fullName;
         this.joinDate = joinDate;
-        // Initialize the performance history list.
+        this.status = MembershipStatus.ACTIVE; // Default status for new members
         this.performanceHistory = new ArrayList<>();
     }
 
-    // --- ABSTRACT METHODS ---
-    // This method must be implemented by all concrete subclasses (RegularMember,
-    // PremiumMember).
-    public abstract double calculateMonthlyFee();
+    // --- Abstract Methods (must be implemented by subclasses) ---
 
-    // This method converts the member's data to a CSV-formatted string for saving.
+    public abstract double calculateMonthlyFee();
     public abstract String toCsvString();
 
-    // --- CONCRETE METHODS ---
 
-    /**
-     * Adds a new performance record to this member's history.
-     * This is the method that resolves the compilation error.
-     * 
-     * @param record The Performance object to add.
-     */
-    public void addPerformanceRecord(Performance record) {
-        this.performanceHistory.add(record);
-    }
+    // --- Getters and Setters ---
 
-    // --- GETTERS AND SETTERS ---
     public String getMemberId() {
         return memberId;
     }
@@ -66,28 +49,39 @@ public abstract class Member {
     public LocalDate getJoinDate() {
         return joinDate;
     }
+    
+    public MembershipStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(MembershipStatus status) {
+        this.status = status;
+    }
+
+    // --- Performance History Methods ---
 
     public List<Performance> getPerformanceHistory() {
         return performanceHistory;
     }
+    
+    public void setPerformanceHistory(List<Performance> history) {
+        this.performanceHistory = history;
+    }
 
+    public void addPerformanceRecord(Performance record) {
+        this.performanceHistory.add(record);
+    }
+    
     /**
-     * Overrides the default toString method to provide a detailed, readable
-     * description of the member, including their performance history.
+     * Provides a base toString() method that subclasses can append to.
+     * This part includes the status and a summary of performance history.
      */
     @Override
     public String toString() {
-        // Use a StringBuilder for efficient string concatenation.
-        StringBuilder sb = new StringBuilder();
-        // Add performance history to the output string.
-        if (!performanceHistory.isEmpty()) {
-            sb.append("\n  Performance History:");
-            for (Performance p : performanceHistory) {
-                sb.append("\n    - ").append(p.toString());
-            }
-        } else {
-            sb.append("\n  Performance History: No records found.");
-        }
-        return sb.toString();
+        String performanceSummary = performanceHistory.isEmpty() ? "\n  Performance History: None"
+            : "\n  Performance History: " + performanceHistory.size() + " record(s).";
+        
+        return String.format("\n  Status: %s", this.status) + performanceSummary;
     }
 }
+

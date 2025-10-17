@@ -1,10 +1,9 @@
 package src;
-
 /**
- * Defines the possible states a member's account can be in.
+ * MembershipStatus Enum
  */
 public enum MembershipStatus {
-    
     ACTIVE,
-    FROZEN
+    FROZEN
 }
+
