@@ -1,65 +1,62 @@
 package src;
 
-import java.io.File;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Main Class (The "View")
- * This class is responsible for the text-based user interface.
- * It interacts with the user and tells the GymManager what to do.
- */
 public class Main {
 
-    // We declare these here so all methods in the class can access them.
     private static GymManager manager = new GymManager();
     private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        // The program now starts with an empty list. The user must load a file.
         System.out.println("Welcome to the Member Management System.");
         System.out.println("Please use option 1 to load a file and begin.");
 
         int choice = 0;
-        while (choice != 7) { // The exit option is now 7
+        while (choice != 9) { // Exit option is now 9
             displayMenu();
             try {
                 System.out.print("Please choose an option: ");
                 choice = scanner.nextInt();
-                scanner.nextLine(); // Consume the newline character left by nextInt()
+                scanner.nextLine();
 
                 switch (choice) {
                     case 1:
-                        handleLoadFile(); // New option to manually load
+                        handleLoadFile();
                         break;
                     case 2:
                         handleViewMembers();
                         break;
                     case 3:
-                        handleAddMember();
+                        handleSearchMenu(); // New Search Sub-menu
                         break;
                     case 4:
-                        handleUpdateMember();
+                        handleAddMember();
                         break;
                     case 5:
-                        handleDeleteMember();
+                        handleAddPerformanceRecord();
                         break;
                     case 6:
-                        handleSaveToFile();
+                        handleUpdateMember();
                         break;
                     case 7:
-                        System.out.println("Exiting system. Your changes have been saved to latest_member_data.csv.");
-                        manager.saveToFile("latest_member_data.csv");
+                        handleDeleteMember();
+                        break;
+                    case 8:
+                        handleSaveToFile();
+                        break;
+                    case 9:
+                        System.out.println("Exiting system. Your changes have been saved to member_data.csv.");
+                        manager.saveToFile("member_data.csv");
                         break;
                     default:
-                        System.out.println("Invalid option. Please enter a number between 1 and 7.");
+                        System.out.println("Invalid option. Please enter a number between 1 and 9.");
                 }
             } catch (InputMismatchException e) {
                 System.err.println("Invalid input. Please enter a number.");
-                scanner.nextLine(); // Clear the bad input from the scanner
+                scanner.nextLine();
             }
         }
         scanner.close();
@@ -67,30 +64,133 @@ public class Main {
 
     private static void displayMenu() {
         System.out.println("\n===== Member Management System =====");
-        System.out.println("1. Load records from a file"); // New menu option
+        System.out.println("1. Load records from a file");
         System.out.println("2. View all members");
-        System.out.println("3. Add a new member");
-        System.out.println("4. Update member information");
-        System.out.println("5. Delete a member");
-        System.out.println("6. Save records to a new file");
-        System.out.println("7. Exit and Save");
+        System.out.println("3. Search / Filter Members..."); // New option
+        System.out.println("4. Add a new member");
+        System.out.println("5. Add Performance Record");
+        System.out.println("6. Update member information");
+        System.out.println("7. Delete a member");
+        System.out.println("8. Save records to a new file");
+        System.out.println("9. Exit and Save");
         System.out.println("====================================");
     }
 
     /**
-     * NEW METHOD: Handles the manual loading of a member data file.
+     * NEW METHOD: Displays and handles the search sub-menu.
      */
+    private static void handleSearchMenu() {
+        int choice = 0;
+        while (choice != 4) {
+            System.out.println("\n--- Search & Filter Menu ---");
+            System.out.println("1. Find members by name");
+            System.out.println("2. Filter members by type");
+            System.out.println("3. Filter members by performance");
+            System.out.println("4. Back to Main Menu");
+            System.out.println("----------------------------");
+            System.out.print("Please choose an option: ");
+            try {
+                choice = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (choice) {
+                    case 1:
+                        handleSearchByName();
+                        break;
+                    case 2:
+                        handleFilterByType();
+                        break;
+                    case 3:
+                        handleFilterByPerformance();
+                        break;
+                    case 4:
+                        System.out.println("Returning to main menu...");
+                        break;
+                    default:
+                        System.out.println("Invalid option. Please enter a number between 1 and 4.");
+                }
+            } catch (InputMismatchException e) {
+                System.err.println("Invalid input. Please enter a number.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    /**
+     * NEW METHOD: Handles searching for members by name.
+     */
+    private static void handleSearchByName() {
+        System.out.print("Enter name to search for: ");
+        String name = scanner.nextLine();
+        List<Member> results = manager.findMembersByName(name);
+        displaySearchResults(results, "name containing '" + name + "'");
+    }
+
+    /**
+     * NEW METHOD: Handles filtering members by type.
+     */
+    private static void handleFilterByType() {
+        System.out.print("Enter member type to filter by (Regular/Premium): ");
+        String type = scanner.nextLine();
+        if (!type.equalsIgnoreCase("Regular") && !type.equalsIgnoreCase("Premium")) {
+            System.err.println("Invalid type. Please enter 'Regular' or 'Premium'.");
+            return;
+        }
+        List<Member> results = manager.findMembersByType(type);
+        displaySearchResults(results, "type '" + type + "'");
+    }
+    
+    /**
+     * NEW METHOD: Handles filtering members by performance.
+     */
+    private static void handleFilterByPerformance() {
+        try {
+            System.out.print("Enter performance month (1-12): ");
+            int month = scanner.nextInt();
+            System.out.print("Enter performance year (e.g., 2025): ");
+            int year = scanner.nextInt();
+            System.out.print("Filter by goal achieved? (yes/no): ");
+            String goalStr = scanner.next();
+            scanner.nextLine(); // consume newline
+            boolean goalAchieved = goalStr.equalsIgnoreCase("yes");
+            
+            List<Member> results = manager.findMembersByPerformance(month, year, goalAchieved);
+            String status = goalAchieved ? "Achieved" : "Not Achieved";
+            displaySearchResults(results, "performance for " + month + "/" + year + " with status '" + status + "'");
+
+        } catch (InputMismatchException e) {
+            System.err.println("Invalid input. Please enter numbers for month and year.");
+            scanner.nextLine(); // Clear bad input
+        }
+    }
+
+    /**
+     * NEW HELPER METHOD: Displays search results or a 'not found' message.
+     */
+    private static void displaySearchResults(List<Member> results, String criteria) {
+        if (results.isEmpty()) {
+            System.out.println("No members found matching criteria: " + criteria);
+        } else {
+            System.out.println("\n--- Search Results: " + results.size() + " member(s) found for " + criteria + " ---");
+            for (Member member : results) {
+                System.out.println(member.toString());
+                System.out.println("--------------------------------------------------");
+            }
+        }
+    }
+
+    // --- Existing Methods (no changes below this line) ---
+
     private static void handleLoadFile() {
         System.out.print("Enter the filename to load (e.g., member_data.csv): ");
         String filename = scanner.nextLine();
-
         if (filename == null || filename.trim().isEmpty()) {
             System.err.println("Error: Filename cannot be empty. Load cancelled.");
             return;
         }
         manager.loadFromFile(filename);
     }
-    
+
     private static void handleViewMembers() {
         List<Member> members = manager.getAllMembers();
         if (members.isEmpty()) {
@@ -100,8 +200,8 @@ public class Main {
         System.out.println("\n--- All Members ---");
         for (Member member : members) {
             System.out.println(member.toString());
+            System.out.println("-------------------");
         }
-        System.out.println("-------------------");
     }
 
     private static void handleAddMember() {
@@ -112,7 +212,7 @@ public class Main {
         System.out.print("Enter Full Name: ");
         String name = scanner.nextLine();
 
-        if(manager.findMemberById(id) != null) {
+        if (manager.findMemberById(id) != null) {
             System.err.println("Error: A member with this ID already exists.");
             return;
         }
@@ -124,7 +224,7 @@ public class Main {
             } else if (type.equalsIgnoreCase("Premium")) {
                 System.out.print("Enter Personal Trainer Fee: ");
                 double fee = scanner.nextDouble();
-                scanner.nextLine(); // Consume newline
+                scanner.nextLine();
                 manager.addMember(new PremiumMember(id, name, LocalDate.now(), fee));
                 System.out.println("Premium member added successfully!");
             } else {
@@ -132,6 +232,41 @@ public class Main {
             }
         } catch (InputMismatchException e) {
             System.err.println("Invalid fee format. Please enter a number.");
+            scanner.nextLine();
+        }
+    }
+
+    private static void handleAddPerformanceRecord() {
+        System.out.print("Enter the ID of the member to add a performance record for: ");
+        String id = scanner.nextLine();
+        Member member = manager.findMemberById(id);
+
+        if (member == null) {
+            System.err.println("Member with ID " + id + " not found.");
+            return;
+        }
+
+        try {
+            System.out.print("Enter performance month (1-12): ");
+            int month = scanner.nextInt();
+            System.out.print("Enter performance year (e.g., 2025): ");
+            int year = scanner.nextInt();
+            System.out.print("Did the member achieve their goal? (yes/no): ");
+            String goalStr = scanner.next();
+            scanner.nextLine();
+
+            boolean goalAchieved = goalStr.equalsIgnoreCase("yes");
+
+            if (month < 1 || month > 12 || year < 2000) {
+                System.err.println("Invalid month or year. Record not added.");
+                return;
+            }
+
+            member.addPerformanceRecord(new Performance(month, year, goalAchieved));
+            System.out.println("Performance record added successfully for " + member.getFullName() + ".");
+
+        } catch (InputMismatchException e) {
+            System.err.println("Invalid input. Please enter numbers for month and year.");
             scanner.nextLine();
         }
     }
@@ -152,7 +287,7 @@ public class Main {
             member.setFullName(newName);
             System.out.println("Name updated.");
         }
-        
+
         if (member instanceof PremiumMember) {
             PremiumMember premium = (PremiumMember) member;
             System.out.print("Enter new Personal Trainer Fee (or press Enter to keep '" + premium.getPersonalTrainerFee() + "'): ");
@@ -162,7 +297,7 @@ public class Main {
                     double newFee = Double.parseDouble(newFeeStr);
                     premium.setPersonalTrainerFee(newFee);
                     System.out.println("Fee updated.");
-                } catch(NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     System.err.println("Invalid fee format. Fee was not updated.");
                 }
             }
@@ -180,17 +315,16 @@ public class Main {
             System.err.println("Member with ID " + id + " not found.");
         }
     }
-    
+
     private static void handleSaveToFile() {
         System.out.print("Enter the filename to save to (e.g., members_backup.csv): ");
         String filename = scanner.nextLine();
-        
+
         if (filename == null || filename.trim().isEmpty()) {
             System.err.println("Error: Filename cannot be empty. Save cancelled.");
-            return; 
+            return;
         }
 
         manager.saveToFile(filename);
     }
 }
-
