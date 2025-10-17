@@ -5,7 +5,8 @@ import java.util.stream.Collectors;
 
 /**
  * RegularMember Class (Concrete "Model")
- * This class represents a standard gym member and extends the base Member class.
+ * This class represents a standard gym member and extends the base Member
+ * class.
  */
 public class RegularMember extends Member {
 
@@ -22,6 +23,7 @@ public class RegularMember extends Member {
 
     /**
      * Provides the specific fee calculation for a regular member.
+     * 
      * @return The flat base fee.
      */
     @Override
@@ -31,16 +33,17 @@ public class RegularMember extends Member {
 
     /**
      * Formats the RegularMember's data into a CSV string for file storage.
-     * This implementation is required by the abstract Member class and resolves the error.
+     * This implementation is required by the abstract Member class and resolves the
+     * error.
      */
     @Override
     public String toCsvString() {
         String baseDetails = String.join(",", memberId, fullName, "Regular", joinDate.toString());
-        
+
         // Append performance data, separated by "|"
         String performanceDetails = performanceHistory.stream()
-            .map(p -> String.format("%d:%d:%b", p.getMonth(), p.getYear(), p.wasGoalAchieved()))
-            .collect(Collectors.joining("|"));
+                .map(p -> String.format("%d:%d:%b", p.getMonth(), p.getYear(), p.wasGoalAchieved()))
+                .collect(Collectors.joining("|"));
 
         if (!performanceDetails.isEmpty()) {
             return baseDetails + "|" + performanceDetails;
@@ -58,4 +61,3 @@ public class RegularMember extends Member {
                 + super.toString(); // Append performance history from parent class
     }
 }
-

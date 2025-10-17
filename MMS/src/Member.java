@@ -31,7 +31,8 @@ public abstract class Member {
     }
 
     // --- ABSTRACT METHODS ---
-    // This method must be implemented by all concrete subclasses (RegularMember, PremiumMember).
+    // This method must be implemented by all concrete subclasses (RegularMember,
+    // PremiumMember).
     public abstract double calculateMonthlyFee();
 
     // This method converts the member's data to a CSV-formatted string for saving.
@@ -42,6 +43,7 @@ public abstract class Member {
     /**
      * Adds a new performance record to this member's history.
      * This is the method that resolves the compilation error.
+     * 
      * @param record The Performance object to add.
      */
     public void addPerformanceRecord(Performance record) {
@@ -89,4 +91,3 @@ public abstract class Member {
         return sb.toString();
     }
 }
-
