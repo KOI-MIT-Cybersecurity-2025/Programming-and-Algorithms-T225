@@ -164,6 +164,16 @@ public class Main {
     private static void handleSaveToFile() {
         System.out.print("Enter the filename to save to (e.g., members_backup.csv): ");
         String filename = scanner.nextLine();
+        
+        // --- ADD THIS CHECK ---
+        // If the filename is empty or just contains whitespace, it's invalid.
+        if (filename == null || filename.trim().isEmpty()) {
+            System.err.println("Error: Filename cannot be empty. Save cancelled.");
+            return; // Exit the method
+        }
+        // --- END OF CHANGE ---
+
         manager.saveToFile(filename);
     }
 }
+
