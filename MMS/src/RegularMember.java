@@ -5,59 +5,51 @@ import java.util.stream.Collectors;
 
 /**
  * RegularMember Class (Concrete "Model")
- * This class represents a standard gym member and extends the base Member
- * class.
+ * UPDATED: Fee calculation now depends on MembershipStatus.
  */
 public class RegularMember extends Member {
 
-    // --- CONSTANTS ---
     private static final double BASE_FEE = 50.0;
+    private static final double FROZEN_FEE = 10.0; // A nominal fee for frozen accounts
 
-    // --- CONSTRUCTOR ---
     public RegularMember(String memberId, String fullName, LocalDate joinDate) {
-        // Call the constructor of the parent class (Member).
         super(memberId, fullName, joinDate);
     }
 
-    // --- OVERRIDDEN METHODS ---
-
-    /**
-     * Provides the specific fee calculation for a regular member.
-     * 
-     * @return The flat base fee.
-     */
     @Override
     public double calculateMonthlyFee() {
+        if (this.status == MembershipStatus.FROZEN) {
+            return FROZEN_FEE;
+        }
         return BASE_FEE;
     }
 
     /**
-     * Formats the RegularMember's data into a CSV string for file storage.
-     * This implementation is required by the abstract Member class and resolves the
-     * error.
+     * ADDED: Implements the abstract method from the parent Member class.
      */
+    @Override
+    public String getMemberType() {
+        return "Regular";
+    }
+
     @Override
     public String toCsvString() {
-        String baseDetails = String.join(",", memberId, fullName, "Regular", joinDate.toString());
+        // Core details including status
+        String baseDetails = String.join(",",
+                memberId,
+                fullName,
+                "Regular",
+                joinDate.toString(),
+                status.toString());
 
-        // Append performance data, separated by "|"
+        // Performance history is appended if it exists
         String performanceDetails = performanceHistory.stream()
-                .map(p -> String.format("%d:%d:%b", p.getMonth(), p.getYear(), p.wasGoalAchieved()))
+                .map(p -> String.format("%d;%d;%b", p.getMonth(), p.getYear(), p.wasGoalAchieved()))
                 .collect(Collectors.joining("|"));
 
-        if (!performanceDetails.isEmpty()) {
-            return baseDetails + "|" + performanceDetails;
-        }
-        return baseDetails;
+        return performanceDetails.isEmpty() ? baseDetails : baseDetails + "," + performanceDetails;
     }
 
-    /**
-     * Overrides the default toString to provide a clear description.
-     */
-    @Override
-    public String toString() {
-        return String.format("[Regular Member] Member ID: %s, Name: %s, Joined: %s, Monthly Fee: $%.2f",
-                getMemberId(), getFullName(), getJoinDate(), calculateMonthlyFee())
-                + super.toString(); // Append performance history from parent class
-    }
+    // The toString() method is now inherited directly from the Member class.
 }
+

@@ -28,14 +28,6 @@ public class PremiumMember extends Member {
         this.personalTrainerFee = fee;
     }
 
-    /**
-     * Calculates the monthly fee for a premium member.
-     * - If the status is FROZEN, a reduced fee is charged.
-     * - If ACTIVE, the fee includes the personal trainer fee and a potential
-     * discount for good performance.
-     * 
-     * @return The calculated monthly fee.
-     */
     @Override
     public double calculateMonthlyFee() {
         if (this.status == MembershipStatus.FROZEN) {
@@ -55,11 +47,13 @@ public class PremiumMember extends Member {
     }
 
     /**
-     * Converts the member's data into a single string for saving to a CSV file.
-     * Includes the membership status and personal trainer fee.
-     * 
-     * @return A CSV-formatted string.
+     * ADDED: Implements the abstract method from the parent Member class.
      */
+    @Override
+    public String getMemberType() {
+        return "Premium";
+    }
+
     @Override
     public String toCsvString() {
         // Core details including status and the extra personal trainer fee
@@ -79,15 +73,6 @@ public class PremiumMember extends Member {
         return performanceDetails.isEmpty() ? baseDetails : baseDetails + "," + performanceDetails;
     }
 
-    /**
-     * Provides a user-friendly string representation of the PremiumMember object.
-     * 
-     * @return A descriptive string for display in the UI.
-     */
-    @Override
-    public String toString() {
-        return String.format("[Premium Member] Member ID: %s, Name: %s, Joined: %s, Monthly Fee: $%.2f",
-                getMemberId(), getFullName(), getJoinDate(), calculateMonthlyFee())
-                + super.toString(); // Appends status and performance history
-    }
+    // The toString() method is now inherited directly from the Member class.
 }
+

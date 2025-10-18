@@ -5,34 +5,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Member Abstract Class (The "Model" Foundation)
- * UPDATED: Now includes MembershipStatus and methods to manage performance history.
- * This is the parent class for all member types.
+ * Member Class (Abstract "Model")
+ * Represents the core properties and behaviors common to all gym members.
+ * UPDATED: Now includes MembershipStatus.
  */
 public abstract class Member {
 
     protected String memberId;
     protected String fullName;
     protected LocalDate joinDate;
-    protected MembershipStatus status;
     protected List<Performance> performanceHistory;
+    protected MembershipStatus status; // ADDED: Member's current status
 
     public Member(String memberId, String fullName, LocalDate joinDate) {
         this.memberId = memberId;
         this.fullName = fullName;
         this.joinDate = joinDate;
-        this.status = MembershipStatus.ACTIVE;
         this.performanceHistory = new ArrayList<>();
+        this.status = MembershipStatus.ACTIVE; // Default to ACTIVE
     }
 
-    // --- Abstract Methods (must be implemented by subclasses) ---
-
-    public abstract double calculateMonthlyFee();
-    public abstract String toCsvString();
-
-
-    // --- Getters and Setters ---
-
+    // Getters
     public String getMemberId() {
         return memberId;
     }
@@ -41,46 +34,58 @@ public abstract class Member {
         return fullName;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
     public LocalDate getJoinDate() {
         return joinDate;
     }
-    
-    public MembershipStatus getStatus() {
-        return status;
-    }
-    
-    public void setStatus(MembershipStatus status) {
-        this.status = status;
-    }
-
-    // --- Performance History Methods ---
 
     public List<Performance> getPerformanceHistory() {
         return performanceHistory;
     }
-    
-    public void setPerformanceHistory(List<Performance> history) {
-        this.performanceHistory = history;
+
+    public MembershipStatus getStatus() {
+        return status;
     }
 
+    // Setters
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public void setStatus(MembershipStatus status) {
+        this.status = status;
+    }
+
+    // Public methods
     public void addPerformanceRecord(Performance record) {
         this.performanceHistory.add(record);
     }
-    
+
+    // Abstract methods to be implemented by subclasses
+    public abstract double calculateMonthlyFee();
+
+    public abstract String toCsvString();
+
+    public abstract String getMemberType(); // ADDED: Forces subclasses to identify their type
+
     /**
-     * Provides a base toString() method that subclasses can append to.
-     * This part includes the status and a summary of performance history.
+     * UPDATED: Provides a single, complete multi-line representation for any member
+     * type, removing duplication.
      */
     @Override
     public String toString() {
-        String performanceSummary = performanceHistory.isEmpty() ? "\n  Performance History: None"
-            : "\n  Performance History: " + performanceHistory.size() + " record(s).";
-        
-        return String.format("\n  Status: %s", this.status) + performanceSummary;
+        String performanceInfo = performanceHistory.isEmpty()
+                ? "None"
+                : performanceHistory.size() + " record(s)";
+
+        return String.format(
+                "Member Type: %s\nMember ID: %s\nName: %s\nJoined: %s\nMonthly Fee: $%.2f\nStatus: %s\nPerformance: %s",
+                getMemberType(), // Calls the new abstract method
+                memberId,
+                fullName,
+                joinDate,
+                calculateMonthlyFee(),
+                status,
+                performanceInfo);
     }
 }
 

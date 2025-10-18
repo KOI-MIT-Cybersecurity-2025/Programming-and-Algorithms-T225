@@ -10,3 +10,14 @@ M010,Jane Davis,Regular,2024-02-14
 M012,Koshish Shrestha,Premium,2025-10-17,FROZEN,100.0
 M055,Nitesh Bhatta,Regular,2025-10-18
 M102,Ram Kc,Premium,2025-10-18,FROZEN,50.0
+M103,Liam Wilson,Regular,2024-05-20
+M104,Olivia Chen,Premium,2023-11-30,ACTIVE,75.0
+M105,Noah Patel,Regular,2025-01-15,ACTIVE
+M106,Emma Jones,Premium,2022-03-14,ACTIVE,65.0,9;2025;true|10;2025;false
+M107,William Garcia,Regular,2023-07-01
+M108,Sophia Rodriguez,Premium,2024-09-22,FROZEN,50.0
+M109,James Smith,Regular,2025-08-01,ACTIVE
+M110,Isabella Martinez,Premium,2021-12-05,ACTIVE,85.0,8;2025;true|9;2025;true
+M111,Benjamin Johnson,Regular,2022-10-10
+M112,Mia Brown,Premium,2025-02-28,ACTIVE,90.0
+

@@ -196,7 +196,7 @@ public class GymApplication {
     }
 
     private static void handleSaveToFile() {
-        System.out.print("Enter filename to save to (e.g., members_backup.csv): ");
+        System.out.print("Enter filename to save to (e.g., new_data_file_gym.csv): ");
         String filename = scanner.nextLine();
         if (filename == null || filename.trim().isEmpty()) {
             System.err.println("Filename cannot be empty. Save cancelled.");
