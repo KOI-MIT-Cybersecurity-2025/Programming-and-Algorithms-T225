@@ -3,7 +3,6 @@ package src;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Member Abstract Class (The "Model" Foundation)
@@ -15,14 +14,14 @@ public abstract class Member {
     protected String memberId;
     protected String fullName;
     protected LocalDate joinDate;
-    protected MembershipStatus status; // The new status field
+    protected MembershipStatus status;
     protected List<Performance> performanceHistory;
 
     public Member(String memberId, String fullName, LocalDate joinDate) {
         this.memberId = memberId;
         this.fullName = fullName;
         this.joinDate = joinDate;
-        this.status = MembershipStatus.ACTIVE; // Default status for new members
+        this.status = MembershipStatus.ACTIVE;
         this.performanceHistory = new ArrayList<>();
     }
 
