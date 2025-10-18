@@ -42,7 +42,7 @@ public class GymApplication {
         System.out.println("6. Delete a member");
         System.out.println("7. Search / Filter Members...");
         System.out.println("8. Save records to a new file");
-        System.out.println("9. Exit and Save to gym_records.csv"); 
+        System.out.println("9. Exit and Save"); 
         System.out.println("====================================");
         System.out.print("Please choose an option: ");
     }
