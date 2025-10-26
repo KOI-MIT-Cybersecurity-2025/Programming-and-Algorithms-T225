@@ -5,27 +5,80 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Member Class (Abstract "Model")
- * Represents the core properties and behaviors common to all gym members.
- * UPDATED: Now includes MembershipStatus.
+ * Abstract Member Class (The "Model")
+ * Serves as the base for all member types.
+ *
+ * INDIVIDUAL PROJECT UPDATES:
+ * - Implements Comparable<Member> to allow for natural sorting by Member ID.
+ * - Centralizes the logic for toString() and getMemberType().
  */
-public abstract class Member {
+public abstract class Member implements Comparable<Member> {
 
     protected String memberId;
     protected String fullName;
     protected LocalDate joinDate;
+    protected MembershipStatus status;
     protected List<Performance> performanceHistory;
-    protected MembershipStatus status; // ADDED: Member's current status
 
     public Member(String memberId, String fullName, LocalDate joinDate) {
+        if (memberId == null || memberId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Member ID cannot be null or empty.");
+        }
+        if (fullName == null || fullName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Full name cannot be null or empty.");
+        }
         this.memberId = memberId;
         this.fullName = fullName;
         this.joinDate = joinDate;
+        this.status = MembershipStatus.ACTIVE; // Default status
         this.performanceHistory = new ArrayList<>();
-        this.status = MembershipStatus.ACTIVE; // Default to ACTIVE
     }
 
-    // Getters
+    // --- Abstract Methods (Must be implemented by subclasses) ---
+
+    public abstract double calculateMonthlyFee();
+
+    public abstract String toCsvString();
+    
+    public abstract String getMemberType();
+
+    // --- Concrete Methods (Inherited by all subclasses) ---
+
+    /**
+     * NEW: Implementation of the Comparable interface.
+     * Allows sorting members by their ID (natural order).
+     * @param other The other member to compare against.
+     * @return a negative integer, zero, or a positive integer as this object
+     * is less than, equal to, or greater than the specified object.
+     */
+    @Override
+    public int compareTo(Member other) {
+        return this.memberId.compareTo(other.memberId);
+    }
+
+    /**
+     * Provides a detailed, multi-line string representation of the member.
+     * This is used for display in the text-based UI.
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("[%s Member] Member ID: %s\n", getMemberType(), memberId));
+        sb.append(String.format("  Name: %s\n", fullName));
+        sb.append(String.format("  Joined: %s\n", joinDate));
+        sb.append(String.format("  Status: %s\n", status));
+        sb.append(String.format("  Monthly Fee: $%.2f\n", calculateMonthlyFee()));
+
+        if (performanceHistory.isEmpty()) {
+            sb.append("  Performance: None");
+        } else {
+            sb.append(String.format("  Performance: %d record(s)", performanceHistory.size()));
+        }
+        return sb.toString();
+    }
+
+    // --- Getters and Setters ---
+
     public String getMemberId() {
         return memberId;
     }
@@ -34,58 +87,31 @@ public abstract class Member {
         return fullName;
     }
 
-    public LocalDate getJoinDate() {
-        return joinDate;
+    public void setFullName(String fullName) {
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            this.fullName = fullName;
+        }
     }
 
-    public List<Performance> getPerformanceHistory() {
-        return performanceHistory;
+    public LocalDate getJoinDate() {
+        return joinDate;
     }
 
     public MembershipStatus getStatus() {
         return status;
     }
 
-    // Setters
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
     public void setStatus(MembershipStatus status) {
         this.status = status;
     }
 
-    // Public methods
-    public void addPerformanceRecord(Performance record) {
-        this.performanceHistory.add(record);
+    public List<Performance> getPerformanceHistory() {
+        return performanceHistory;
     }
 
-    // Abstract methods to be implemented by subclasses
-    public abstract double calculateMonthlyFee();
-
-    public abstract String toCsvString();
-
-    public abstract String getMemberType(); // ADDED: Forces subclasses to identify their type
-
-    /**
-     * UPDATED: Provides a single, complete multi-line representation for any member
-     * type, removing duplication.
-     */
-    @Override
-    public String toString() {
-        String performanceInfo = performanceHistory.isEmpty()
-                ? "None"
-                : performanceHistory.size() + " record(s)";
-
-        return String.format(
-                "Member Type: %s\nMember ID: %s\nName: %s\nJoined: %s\nMonthly Fee: $%.2f\nStatus: %s\nPerformance: %s",
-                getMemberType(), // Calls the new abstract method
-                memberId,
-                fullName,
-                joinDate,
-                calculateMonthlyFee(),
-                status,
-                performanceInfo);
+    public void addPerformanceRecord(Performance record) {
+        // Optional: Add logic to prevent duplicate month/year entries
+        this.performanceHistory.add(record);
     }
 }
 
